@@ -1,0 +1,2 @@
+require('../')
+require('./example').hello()

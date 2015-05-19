@@ -1,10 +1,3 @@
-# tot
-Experimental language, superset of JavaScript, for writing async code like sync code
-
-
-Example (example.tot)
-
-```javascript
 function something(message, callback) {
   setTimeout(function() {
     // if (message === 'bar') return callback(new Error('bar is not supported'))
@@ -25,23 +18,9 @@ exports.hello = function() {
     var baz =: something('baz')
 
     done(foo, bar, baz)
+    console.log(__filename)
   } catch(e) {
     console.log('error', e.message)
   }
 
 }
-```
-
-Usage:
-
-First init the npm module
-
-```javascript
-require('tot')
-```
-
-Then you can require any `.tot` file.
-
-```javascript
-require('./example').hello()
-```
