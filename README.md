@@ -20,6 +20,12 @@ Tot adds a new operator `=:` that lets you call this function like this:
 var world =: something('world')
 ```
 
+You can even declare multiple returning variables:
+
+```javascript
+var foo, bar =: someFunction('world')
+```
+
 ## Full example
 
 Full example (example.tot)
@@ -144,11 +150,3 @@ Open a `.tot` file and go to the menu `View → Syntax → Open all with current
 ## Drawbacks
 
 Since Tot compiles to JavaScript any stack trace will reference lines of code of the generated JavaScript and not the original Tot code. This could be fixed using sourcemaps in a future.
-
-## Roadmap
-
-- Support many returned variables with the following syntax:
-
-```javascript
-var foo, bar =: something()
-```

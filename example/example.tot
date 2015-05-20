@@ -1,7 +1,7 @@
 function something(message, callback) {
   setTimeout(function() {
     // if (message === 'bar') return callback(new Error('bar is not supported'))
-    callback(null, 'hello '+message)
+    callback(null, 'hello '+message, 'bye '+message)
   }, 1)
 }
 
@@ -13,11 +13,11 @@ function done() {
 
 exports.hello = function() {
   try {
-    var foo =: something('foo')
-    var bar =: something('bar')
-    var baz =: something('baz')
+    var foo, a =: something('foo')
+    var bar, b =: something('bar')
+    var baz, c =: something('baz')
 
-    done(foo, bar, baz)
+    done(foo, bar, baz, a, b, c)
     console.log(__filename)
   } catch(e) {
     console.log('error', e.message)

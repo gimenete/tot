@@ -1,6 +1,6 @@
 {
   "name": "tot",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "description": "Experimental language, superset of JavaScript, for writing async code like sync code",
   "main": "index.js",
   "scripts": {
