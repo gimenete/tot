@@ -123,7 +123,14 @@ So `console.log('hello')` is always executed before `console.log('world')`
 
 ### Arguments
 
-The special `arguments` variable available in JavaScript when executing a function is also available
+The special `arguments` variable available in JavaScript when executing a function is also available but after any use of `=:` it will not match what you expect. If you want to use it, make a copy of it first:
+
+```javascript
+// make a copy into an array
+var args = Array.prototype.slice.call(arguments)
+var foo =: something('foo')
+// do not use `arguments` here
+```
 
 ## Hot it doesn't work
 
