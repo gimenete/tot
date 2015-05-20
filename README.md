@@ -132,7 +132,7 @@ var foo =: something('foo')
 // do not use `arguments` here
 ```
 
-## Hot it doesn't work
+## How it doesn't work
 
 - Tot does not create threads
 - Tot does not spawn processes
