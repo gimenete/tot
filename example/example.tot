@@ -1,3 +1,5 @@
+var request = require('request')
+
 function something(message, callback) {
   setTimeout(function() {
     // if (message === 'bar') return callback(new Error('bar is not supported'))
@@ -19,8 +21,14 @@ exports.hello = function() {
 
     done(foo, bar, baz, a, b, c)
     console.log(__filename)
+
+    console.log('Requesting URL')
+    // example with multiple variables
+    var res, body =: request('http://google.es')
+    console.log('body length', body.length)
+    console.log('response headers', res.headers)
+
   } catch(e) {
     console.log('error', e.message)
   }
-
 }

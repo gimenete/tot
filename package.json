@@ -22,5 +22,8 @@
   "dependencies": {
     "escodegen": "^1.6.1",
     "esprima-tot": "^2.2.0"
+  },
+  "devDependencies": {
+    "request": "^2.55.0"
   }
 }

@@ -5,7 +5,6 @@ var fs = require('fs')
 require.extensions['.tot'] = function (obj, path) {
   var source = fs.readFileSync(path, 'utf8')
   var syntax = esprima.parse(source)
-
   processNode(syntax)
 
   var js = escodegen.generate(syntax)
@@ -15,104 +14,112 @@ require.extensions['.tot'] = function (obj, path) {
   return require.extensions['.js'](obj, finalPath)
 
   var lastTryStatement
+
+  function processVariableDeclaration(arr, n, i) {
+    var ignored = []
+    var vars = []
+    
+    for (var k = 0; k < n.declarations.length; k++) {
+      var declaration = n.declarations[k]
+      if (declaration.type === 'VariableDeclarator'
+        && declaration.id.type === 'Identifier') {
+
+        if (!declaration.init) {
+          vars.push(declaration)
+        } else if (declaration.init.async === true
+                    && declaration.init.type === 'CallExpression') {
+
+          var body = arr.splice(i+1)
+          arr.splice(i, i+1, declaration.init)
+          var errname = (lastTryStatement
+                        && lastTryStatement.handler
+                        && lastTryStatement.handler.param
+                        && lastTryStatement.handler.param.name)
+                        || 'err'
+          if (lastTryStatement
+            && lastTryStatement.handler
+            && lastTryStatement.handler.body) {
+              var errBody = lastTryStatement.handler.body.body.slice()
+              errBody.push({
+                "type": "ReturnStatement",
+                "argument": null
+              })
+              body.splice(0, 0, {
+                "type": "IfStatement",
+                "test": {
+                  "type": "Identifier",
+                  "name": errname
+                },
+                "consequent": {
+                  "type": "BlockStatement",
+                  "body": errBody,
+                }
+              })
+          }
+          var params = []
+          params.push({
+            type: 'Identifier',
+            name: errname,
+          })
+          vars.forEach(function(arg) {
+            params.push({
+              type: 'Identifier',
+              name: arg.id.name,
+            })
+          })
+          params.push({
+            type: 'Identifier',
+            name: declaration.id.name,
+          })
+          var callback = {
+            "type": "FunctionExpression",
+            "id": null,
+            "params": params,
+            "defaults": [],
+            "body": {
+              "type": "BlockStatement",
+              "body": body
+            },
+            "generator": false,
+            "expression": false
+          }
+          var arguments = declaration.init.arguments
+          arguments.push(callback)
+          processNode(body)
+          return true
+        } else {
+          vars.splice(0, vars.length)
+          ignored.push(declaration)
+        }
+      }
+    }
+
+    if (ignored.length > 0) {
+      // TODO
+    }
+  }
+
+  function processNodeArray(arr) {
+    var all = arr.slice() // make a copy
+    var i = 0
+    while (true) {
+      var n = all.shift()
+      if (!n) return
+
+      if (n.type === 'VariableDeclaration' && n.kind === 'var') {
+        var end = processVariableDeclaration(arr, n, i)
+        if (end) return
+      } else {
+        processNode(n)
+      }
+      i++
+    }
+  }
+
   function processNode(node) {
     if (!node) return
     if (node.constructor === Array) {
-      var arr = node
-      var all = arr.slice()
-      var i = 0
-      while (true) {
-        var n = all.shift()
-        if (!n) return
-
-        if (n.type === 'VariableDeclaration' && n.kind === 'var') {
-          var ignored = []
-          var vars = []
-          var declarations = n.declarations
-          declarations.forEach(function(declaration) {
-            if (declaration.type === 'VariableDeclarator'
-              && declaration.id.type === 'Identifier') {
-
-              if (!declaration.init) {
-                vars.push(declaration)
-              } else if (declaration.init.async === true
-                          && declaration.init.type === 'CallExpression') {
-
-                var body = arr.splice(i+1)
-                arr.splice(i, i+1, declaration.init)
-                var errname = (lastTryStatement
-                              && lastTryStatement.handler
-                              && lastTryStatement.handler.param
-                              && lastTryStatement.handler.param.name)
-                              || 'err'
-                if (lastTryStatement
-                  && lastTryStatement.handler
-                  && lastTryStatement.handler.body) {
-                    var errBody = lastTryStatement.handler.body.body.slice()
-                    errBody.push({
-                      "type": "ReturnStatement",
-                      "argument": null
-                    })
-                    body.splice(0, 0, {
-                      "type": "IfStatement",
-                      "test": {
-                        "type": "Identifier",
-                        "name": errname
-                      },
-                      "consequent": {
-                        "type": "BlockStatement",
-                        "body": errBody,
-                      }
-                    })
-                }
-                var params = []
-                params.push({
-                  type: 'Identifier',
-                  name: errname,
-                })
-                vars.forEach(function(arg) {
-                  params.push({
-                    type: 'Identifier',
-                    name: arg.id.name,
-                  })
-                })
-                params.push({
-                  type: 'Identifier',
-                  name: declaration.id.name,
-                })
-                var callback = {
-                  "type": "FunctionExpression",
-                  "id": null,
-                  "params": params,
-                  "defaults": [],
-                  "body": {
-                    "type": "BlockStatement",
-                    "body": body
-                  },
-                  "generator": false,
-                  "expression": false
-                }
-                var arguments = declaration.init.arguments
-                arguments.push(callback)
-                processNode(body)
-              } else {
-                vars.splice(0, vars.length)
-                ignored.push(declaration)
-              }
-            }
-
-          })
-
-          if (ignored.length > 0) {
-            // TODO
-          }
-          return
-        }
-
-        processNode(n)
-        i++
-      }
-      return
+      return processNodeArray(node)
     }
 
     if (node.type === 'Program') {
